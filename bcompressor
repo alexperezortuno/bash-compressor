@@ -33,6 +33,17 @@ gzipCompression()
    fi
 }
 
+tarCompression()
+{
+   newlist+=("$1")
+   tar -cvzf "$OUTPUT.tar.gz" "$1"
+
+   if [ "$2" == "y" ]
+   then
+      rm "$file"
+   fi
+}
+
 runStandalone()
 {
    d=$(date +%Y.%m.%d)
@@ -71,6 +82,9 @@ runStandalone()
                 if [ "$GZIP_COMPRESSION" == "1" ]
                 then
                     gzipCompression $file $REMOVE
+                elif [ "$TAR_COMPRESSION" == "1" ]
+                then
+                    tarCompression $file $REMOVE
                 else
                     compressFile $file $REMOVE
                 fi
@@ -87,7 +101,7 @@ runStandalone()
    exit 0
 }
 
-while getopts lshgd:o:r: flag
+while getopts lshgtd:o:r: flag
 do
     case "${flag}" in
         d) DAYS=${OPTARG} ;;
@@ -97,6 +111,7 @@ do
         h) HELP=1 ;;
         s) SHOW=1 ;;
         g) GZIP_COMPRESSION=1 ;;
+        t) TAR_COMPRESSION=1 ;;
         *) HELP=1 ;;
     esac
 done
