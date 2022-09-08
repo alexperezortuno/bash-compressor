@@ -1,0 +1,95 @@
+#!/bin/bash
+
+helpFunction()
+{
+   echo ""
+   echo "Usage: $0 -a parameterA -b parameterB -c parameterC"
+   echo -e "\t-d days of files to compress"
+   echo -e "\t-o output file name"
+   echo -e "\t-l log enable"
+   echo -e "\t-h Help instructions"
+   exit 1 # Exit script after printing help
+}
+
+compressFile()
+{
+   newlist+=($1)
+   zip -r $OUTPUT $1
+
+    if [ "$2" == "y" ]
+   then
+      rm $file
+   fi
+}
+
+runStandalone()
+{
+   d=$(date +%Y.%m.%d)
+   OUTPUT=${OUTPUT:-"backup-$d.zip"}
+
+   if [ -z "$DAYS" ]
+   then
+      echo "How old should the file(s) be?"
+      read DAYS
+   fi
+
+   FILES=$(find -mtime +$DAYS)
+
+   if [ "$LOG" = "1" ]
+   then
+      find -mtime +$DAYS
+   fi
+
+   newlist=()
+
+   for file in $FILES
+   do
+      if test -f "$file"
+      then
+            if [ "$REMOVE" == "" ]
+            then
+               echo -e "\nZip $file to <$OUTPUT> and delete the original then? (y/n)"
+               read REMOVE
+
+               if [ "$REMOVE" = "y" ]
+               then
+                  compressFile $file $REMOVE
+               fi
+               REMOVE=""
+            else
+               compressFile $file $REMOVE
+            fi
+      fi
+   done
+
+   if [ "$LOG" = "1" ]
+   then
+      echo "Files that were zipped: ${newlist[*]}"
+      echo "Total number of files zipped: ${#newlist[@]}"
+   fi
+
+   exit 0
+}
+
+while getopts lshd:o:r: flag
+do
+    case "${flag}" in
+        d) DAYS=${OPTARG} ;;
+        o) OUTPUT=${OPTARG} ;;
+        l) LOG=1 ;;
+        r) REMOVE=${OPTARG} ;;
+        h) HELP=1 ;;
+        s) SHOW=1 ;;
+    esac
+done
+
+if [ "$HELP" == "1" ]
+then
+   helpFunction
+elif [ "$SHOW" == "1" ]
+then
+   find -mtime +$DAYS
+   exit 0
+else
+   runStandalone
+fi
