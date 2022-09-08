@@ -8,7 +8,7 @@ helpFunction()
    echo -e "\t-o output file name"
    echo -e "\t-l log enable"
    echo -e "\t-h Help instructions"
-   exit 1 # Exit script after printing help
+   exit 1
 }
 
 compressFile()
@@ -80,6 +80,7 @@ do
         r) REMOVE=${OPTARG} ;;
         h) HELP=1 ;;
         s) SHOW=1 ;;
+        *) HELP=1 ;;
     esac
 done
 
