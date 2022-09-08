@@ -8,24 +8,50 @@ helpFunction()
    echo -e "\t-o output file name"
    echo -e "\t-l log enable"
    echo -e "\t-h Help instructions"
+   echo -e "\t-s Show files to compress"
+   echo -r "\t-r Remove files after compress (default: false, options: y/n)"
+   echo -t "\t-g Compress files with gzip"
+   echo -t "\t-t Compress files with tar"
    exit 1
 }
 
 compressFile()
 {
-   newlist+=($1)
-   zip -r $OUTPUT $1
+   newlist+=("$1")
+   zip -r "$OUTPUT.zip" $1
 
     if [ "$2" == "y" ]
    then
-      rm $file
+      rm "$file"
+   fi
+}
+
+gzipCompression()
+{
+   newlist+=("$1")
+   gzip -k -c -9 "$1" > "$OUTPUT.gz"
+
+   if [ "$2" == "y" ]
+   then
+      rm "$file"
+   fi
+}
+
+tarCompression()
+{
+   newlist+=("$1")
+   tar -cvzf "$OUTPUT.tar.gz" "$1"
+
+   if [ "$2" == "y" ]
+   then
+      rm "$file"
    fi
 }
 
 runStandalone()
 {
    d=$(date +%Y.%m.%d)
-   OUTPUT=${OUTPUT:-"backup-$d.zip"}
+   OUTPUT=${OUTPUT:-"backup-$d"}
 
    if [ -z "$DAYS" ]
    then
@@ -48,16 +74,21 @@ runStandalone()
       then
             if [ "$REMOVE" == "" ]
             then
-               echo -e "\nZip $file to <$OUTPUT> and delete the original then? (y/n)"
-               read REMOVE
-
                if [ "$REMOVE" = "y" ]
                then
                   compressFile $file $REMOVE
                fi
                REMOVE=""
             else
-               compressFile $file $REMOVE
+                if [ "$GZIP_COMPRESSION" == "1" ]
+                then
+                    gzipCompression $file $REMOVE
+                elif [ "$TAR_COMPRESSION" == "1" ]
+                then
+                    tarCompression $file $REMOVE
+                else
+                    compressFile $file $REMOVE
+                fi
             fi
       fi
    done
@@ -71,7 +102,9 @@ runStandalone()
    exit 0
 }
 
-while getopts lshd:o:r: flag
+REMOVE=${REMOVE:-"n"}
+
+while getopts lshgtd:o:r: flag
 do
     case "${flag}" in
         d) DAYS=${OPTARG} ;;
@@ -80,9 +113,12 @@ do
         r) REMOVE=${OPTARG} ;;
         h) HELP=1 ;;
         s) SHOW=1 ;;
+        g) GZIP_COMPRESSION=1 ;;
+        t) TAR_COMPRESSION=1 ;;
         *) HELP=1 ;;
     esac
 done
+
 
 if [ "$HELP" == "1" ]
 then
