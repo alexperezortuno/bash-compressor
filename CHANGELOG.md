@@ -1,4 +1,6 @@
 ## [Unreleased]
+### Added
+- Add more information to the README
 
 ---
 
