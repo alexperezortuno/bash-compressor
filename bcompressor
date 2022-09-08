@@ -8,6 +8,10 @@ helpFunction()
    echo -e "\t-o output file name"
    echo -e "\t-l log enable"
    echo -e "\t-h Help instructions"
+   echo -e "\t-s Show files to compress"
+   echo -r "\t-r Remove files after compress (default: false, options: y/n)"
+   echo -t "\t-g Compress files with gzip"
+   echo -t "\t-t Compress files with tar"
    exit 1
 }
 
@@ -70,9 +74,6 @@ runStandalone()
       then
             if [ "$REMOVE" == "" ]
             then
-               echo -e "\nZip $file to <$OUTPUT> and delete the original then? (y/n)"
-               read REMOVE
-
                if [ "$REMOVE" = "y" ]
                then
                   compressFile $file $REMOVE
@@ -101,6 +102,8 @@ runStandalone()
    exit 0
 }
 
+REMOVE=${REMOVE:-"n"}
+
 while getopts lshgtd:o:r: flag
 do
     case "${flag}" in
@@ -115,6 +118,7 @@ do
         *) HELP=1 ;;
     esac
 done
+
 
 if [ "$HELP" == "1" ]
 then
